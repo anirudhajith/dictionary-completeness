@@ -2,7 +2,7 @@
 What's the smallest number of words you need to know to be able to learn them all?
 
 ## Setup
-1. Download postprocessed data extracted from the latest Wiktionary dump.
+1. Download [postprocessed data](https://kaikki.org/dictionary/English/index.html) extracted from the latest [Wiktionary](https://en.wiktionary.org/wiki/Wiktionary:Main_Page) dump.
     ```
     mkdir -p data/raw_input
     wget -P data/raw_input https://kaikki.org/dictionary/English/words/kaikki.org-dictionary-English-words.jsonl
@@ -79,23 +79,23 @@ python -m analysis.plot_random_grounding_curve
 
 <img src="https://github.com/anirudhajith/dictionary-completeness/blob/main/data/plots/random_grounding_curve.png" width="500">
 
-So under this heuristic, even if you take away 25,000 $(\approx 2.5\\%)$ of the vertices, you're dead in the water. This is the number to beat. 
+So under this heuristic, even if you take away 30,000 ($\approx$ 3%) of the vertices, you're dead in the water. This is the number to beat. 
 
 ### Greedily pick vertices with the highest out-degrees
-One simple baseline that could plausibly work better is to simply greedily pick vertices with the highest out-degrees until you first reach a valid grounding set. The intuition here is that you're choosing to include vertices in your grounding set that have maximal utility in that they enable maximal marginal reachability.
+One simple baseline that could plausibly work better is to simply greedily pick vertices with the highest out-degrees until you first reach a valid grounding set (post including $B$). The intuition here is that you're choosing to include vertices in your grounding set that have maximal utility in that they enable maximal marginal reachability.
 
 ```
-python -m baselines.greedy_outdegree_grounding
+python -m baselines.greedy_out_degree_grounding
 ```
 
-Wow, this works so much better! This greedy strategy finds a grounding set of size 389,576 $(\approx 39.0\\%)$.
+Wow, this works so much better! This greedy strategy finds a grounding set of size 389,576 (39.0%).
 
 ## Results
 
 Call the set of undefined and self-referential words $B \subset V$.
 
 | Baseline                                                      | Grounding set size ↓ | %age words retained ↓ |
-| ------------------------------------------------------------- | -------------------- | --------------------- |
-| do nothing                                                    | 998669               | 100                   |
-| random (after including $B$)                                  | $\approx$ 975000     | $\approx$ 97.6        |
+| ------------------------------------------------------------- | --------------------:| ---------------------:|
+| do nothing                                                    | 998669               | 100.0                 |
+| random (after including $B$)                                  | $\approx$ 970000     | $\approx$ 97.1        |
 | greedily pick highest out-degree words (after including $B$)  | 389576               | 39.0                  |

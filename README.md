@@ -79,7 +79,7 @@ python -m analysis.plot_grounding_curve
 
 <img src="https://github.com/anirudhajith/dictionary-completeness/blob/main/data/plots/random_grounding_curve_plot.png" width="500">
 
-So under this heuristic, even if you take away 25,000 $(\approx 2.5\%)$ of the vertices, you're dead in the water. This is the number to beat. 
+So under this heuristic, even if you take away 25,000 $(\approx 2.5\\%)$ of the vertices, you're dead in the water. This is the number to beat. 
 
 ### A greedy strategy
 One simple baseline that could plausibly work better is just greedily picking vertices with the highest out-degrees.
@@ -88,4 +88,4 @@ One simple baseline that could plausibly work better is just greedily picking ve
 python -m baselines.topk_outdegree_grounding
 ```
 
-Wow, this works so much better! This greedy strategy finds a grounding set of size 389,576 $(\approx 39.0\%)$.
+Wow, this works so much better! This greedy strategy finds a grounding set of size 389,576 $(\approx 39.0\\%)$.

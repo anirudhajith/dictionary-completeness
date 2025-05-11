@@ -34,12 +34,12 @@ def analyze_structure(G):
     # Find top 10 most defined and defining words
     most_defined = sorted(in_degrees.items(), key=lambda x: x[1], reverse=True)[:10]
     most_defining = sorted(out_degrees.items(), key=lambda x: x[1], reverse=True)[:10]
-    print("\nTop 10 most defined words:")
+    print("\nTop 10 words with most incoming edges:")
     for word, deg in most_defined:
-        print(f"  {word}: {deg} definitions")
-    print("\nTop 10 most defining words:")
+        print(f"  {word}: {deg} predecessors")
+    print("\nTop 10 words with most outgoing edges:")
     for word, deg in most_defining:
-        print(f"  {word}: {deg} defined words")
+        print(f"  {word}: {deg} successors")
 
 def analyze_cycles(G):
     print("\n=== Cycles ===")

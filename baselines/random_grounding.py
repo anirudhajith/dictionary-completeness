@@ -6,7 +6,6 @@ import networkx as nx
 import numpy as np
 from tqdm import tqdm
 from collections import deque
-from scipy.stats import binom
 
 def load_graph_from_json(path):
     with open(path, "r", encoding="utf-8") as f:
@@ -88,7 +87,7 @@ def save_results(results, path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Empirical grounding curve sweep")
     parser.add_argument("--input_path", type=str, default="data/graph/incoming_adj_list.json", help="Path to incoming adjacency list")
-    parser.add_argument("--output_path", type=str, default="data/experiments/grounding_curve.json", help="Path to save sweep results")
+    parser.add_argument("--output_path", type=str, default="data/experiments/random_grounding.json", help="Path to save sweep results")
     parser.add_argument("--min_k", type=int, default=950000, help="Minimum value of k to sweep")
     parser.add_argument("--max_k", type=int, default=974596, help="Maximum value of k to sweep")
     parser.add_argument("--step_k", type=int, default=1000, help="Step size for k sweep")

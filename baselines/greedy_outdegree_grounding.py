@@ -79,7 +79,7 @@ def save_results(results, path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Binary search for top-k out-degree grounding set")
     parser.add_argument("--input_path", type=str, default="data/graph/incoming_adj_list.json", help="Path to incoming adjacency list")
-    parser.add_argument("--output_path", type=str, default="data/experiments/topk_outdegree_grounding.json", help="Path to save grounding result")
+    parser.add_argument("--output_path", type=str, default="data/experiments/greedy_outdegree_grounding.json", help="Path to save grounding result")
     args = parser.parse_args()
 
     print(f"Loading graph from {args.input_path}")

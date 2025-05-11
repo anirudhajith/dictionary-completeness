@@ -25,7 +25,7 @@ def plot_grounding_curve(results, output_path):
 
     plt.plot(x, y, label="Success Rate")
     plt.fill_between(x, y_lo, y_hi, alpha=0.2, label="95% CI")
-    plt.title("Empirical Grounding Curve (|V|=998669)", fontsize=20)
+    plt.title("Empirical Random Grounding Curve (|V|=998669)", fontsize=20)
     plt.xlabel("Grounding Set Size", fontsize=16)
     plt.ylabel("Success Rate", fontsize=16)
     plt.xticks(fontsize=14)
@@ -40,8 +40,8 @@ def plot_grounding_curve(results, output_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot empirical grounding sweep results")
-    parser.add_argument("--input_path", type=str, default="data/experiments/grounding_curve.json", help="Path to grounding sweep JSON results")
-    parser.add_argument("--output_path", type=str, default="data/plots/random_grounding_curve_plot.png", help="Path to save the plot image")
+    parser.add_argument("--input_path", type=str, default="data/experiments/random_grounding_curve.json", help="Path to grounding sweep JSON results")
+    parser.add_argument("--output_path", type=str, default="data/plots/random_grounding_curve.png", help="Path to save the plot image")
     args = parser.parse_args()
 
     results = load_grounding_sweep_results(args.input_path)

@@ -1,4 +1,5 @@
-data/
+*.json
+*.jsonl
 *.out
 
 __pycache__/

@@ -63,29 +63,39 @@ Avg reachability (forward, from sample of 100 nodes): 0.0600
 ```
 
 ## Baselines
-### An empirical curve
+### Randomly pick a candidate grounding set
 Call the graph $G = (V, E)$.
 
 There are some words that necessarily have to be in any valid grounding set, namely 
 1. words with empty definitions i.e. vertices with in-degree = 0.
 2. words with self-referential definitions i.e. vertices which have self-loops.
 
-If you collect these into a set $B$ and go on to randomly pick $k$ vertices from $V \backslash B$, call that set $A_k$ and plot the empirical probability of $A_k \cup B$ constituting a valid grounding for $G$, you get the following line plot for the success probability as a function of $|A_k \cup B| = |B| + k$.
+If you collect these into a set $B$ and go on to randomly pick $k$ vertices from $V \backslash B$, call that set $A_k$ and compute the empirical probability of $A_k \cup B$ constituting a valid grounding for $G$, you get the following line plot for the success probability as a function of $|A_k \cup B| = |B| + k$.
 
 ```
-python -m baselines.grounding_curve_sweep
-python -m analysis.plot_grounding_curve
+python -m baselines.random_grounding --trials 1000
+python -m analysis.plot_random_grounding_curve
 ```
 
-<img src="https://github.com/anirudhajith/dictionary-completeness/blob/main/data/plots/random_grounding_curve_plot.png" width="500">
+<img src="https://github.com/anirudhajith/dictionary-completeness/blob/main/data/plots/random_grounding_curve.png" width="500">
 
 So under this heuristic, even if you take away 25,000 $(\approx 2.5\\%)$ of the vertices, you're dead in the water. This is the number to beat. 
 
-### A greedy strategy
-One simple baseline that could plausibly work better is just greedily picking vertices with the highest out-degrees.
+### Greedily pick vertices with the highest out-degrees
+One simple baseline that could plausibly work better is to simply greedily pick vertices with the highest out-degrees until you first reach a valid grounding set. The intuition here is that you're choosing to include vertices in your grounding set that have maximal utility in that they enable maximal marginal reachability.
 
 ```
-python -m baselines.topk_outdegree_grounding
+python -m baselines.greedy_outdegree_grounding
 ```
 
 Wow, this works so much better! This greedy strategy finds a grounding set of size 389,576 $(\approx 39.0\\%)$.
+
+## Results
+
+Call the set of undefined and self-referential words $B \subset V$.
+
+| Baseline                                                      | Grounding set size ↓ | %age words retained ↓ |
+| ------------------------------------------------------------- | -------------------- | --------------------- |
+| do nothing                                                    | 998669               | 100                   |
+| random (after including $B$)                                  | $\approx$ 975000     | $\approx$ 97.6        |
+| greedily pick highest out-degree words (after including $B$)  | 389576               | 39.0                  |

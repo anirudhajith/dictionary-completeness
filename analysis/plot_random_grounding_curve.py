@@ -40,7 +40,7 @@ def plot_grounding_curve(results, output_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot empirical grounding sweep results")
-    parser.add_argument("--input_path", type=str, default="data/experiments/random_grounding_curve.json", help="Path to grounding sweep JSON results")
+    parser.add_argument("--input_path", type=str, default="data/experiments/random_grounding.json", help="Path to grounding sweep JSON results")
     parser.add_argument("--output_path", type=str, default="data/plots/random_grounding_curve.png", help="Path to save the plot image")
     args = parser.parse_args()
 

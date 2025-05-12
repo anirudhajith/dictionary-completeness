@@ -26,11 +26,12 @@ def compute_mandatory_grounding_set(G):
 
 def greedy_deductive_grounding(G, initial_grounding, strategy, backoff):
     
+    mandatory_set = set()
     if initial_grounding == "empty":
         grounding_set = set()
     elif initial_grounding == "mandatory":
-        B = compute_mandatory_grounding_set(G)
-        grounding_set = set(B)
+        mandatory_set = compute_mandatory_grounding_set(G)
+        grounding_set = set(mandatory_set)
 
     all_nodes = set(G.nodes)
     G_pred = {v: list(G.predecessors(v)) for v in G.nodes}
@@ -47,9 +48,6 @@ def greedy_deductive_grounding(G, initial_grounding, strategy, backoff):
             remaining_pred_count[succ] -= 1
             if (succ in unknown_set) and (remaining_pred_count[succ] == 0):
                 to_explore.append(succ)
-    #if backoff == "max_out_degree":
-    #    succ_count_heap = [(-remaining_succ_count[v], v) for v in unknown_set] # heapq API is min-heap but I want a max-heap
-    #    heapq.heapify(succ_count_heap)
 
     pbar = tqdm(initial=len(all_nodes) - len(unknown_set), total=len(all_nodes), desc="# known nodes")
     while len(unknown_set) > 0:
@@ -72,10 +70,10 @@ def greedy_deductive_grounding(G, initial_grounding, strategy, backoff):
                 to_explore.append(succ)
         for pred in G_pred[current]:
             remaining_succ_count[pred] -= 1
-            #if backoff == "max_out_degree":
-            #    heapq.heappush(succ_count_heap, (-remaining_succ_count[pred], pred))
 
         pbar.update(1)
+
+    extra_grounding_set = sorted(grounding_set - mandatory_set)
 
     return {
         "total_nodes": len(all_nodes),
@@ -84,6 +82,7 @@ def greedy_deductive_grounding(G, initial_grounding, strategy, backoff):
         "backoff": backoff,
         "grounding_set_size": len(grounding_set),
         "grounding_set": sorted(grounding_set),
+        "extra_grounding_set": extra_grounding_set,
     }
 
 def save_results(results, path):
@@ -97,7 +96,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_path", type=str, default="data/experiments/greedy_deductive_grounding.json", help="Path to save grounding result")
     parser.add_argument("--initial_grounding", choices=["empty", "mandatory"], default="mandatory", help="Initial grounding set")
     parser.add_argument("--strategy", choices=["queue", "stack"], default="queue", help="Strategy for exploring the known frontier")
-    parser.add_argument("--backoff", choices=["random", "max_out_degree"], default="max_outdegree", help="Strategy for picking new grounding word when stuck")
+    parser.add_argument("--backoff", choices=["random", "max_out_degree"], default="max_out_degree", help="Strategy for picking new grounding word when stuck")
     parser.add_argument("--random_seed", type=int, default=42, help="Random seed for reproducibility")
     args = parser.parse_args()
 

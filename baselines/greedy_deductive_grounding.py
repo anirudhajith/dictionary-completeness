@@ -24,7 +24,7 @@ def compute_mandatory_grounding_set(G):
             mandatory.add(node)
     return mandatory
 
-def greedy_deductive_grounding(G, initial_grounding, strategy, backoff):
+def greedy_deductive_grounding(G, initial_grounding, strategy, backoff, lookahead_k=30):
     
     mandatory_set = set()
     if initial_grounding == "empty":
@@ -37,9 +37,13 @@ def greedy_deductive_grounding(G, initial_grounding, strategy, backoff):
     G_pred = {v: list(G.predecessors(v)) for v in G.nodes}
     G_succ = {v: list(G.successors(v)) for v in G.nodes}
     unknown_set = all_nodes - grounding_set
-    remaining_pred_count = {v: G.in_degree(v) for v in G.nodes} # number of remaining predecessors that are unknown
-    remaining_succ_count = {v: G.out_degree(v) for v in G.nodes} # number of remaining successors that are unknown
-    to_explore = deque() # queue for exploring the known frontier (contains knowable but yet unknown nodes)
+    remaining_pred_count = {v: G.in_degree(v) for v in G.nodes}
+    remaining_succ_count = {v: G.out_degree(v) for v in G.nodes}
+    to_explore = deque()
+
+    if backoff in ("max_out_degree", "lookahead"):
+        succ_heap = [(-remaining_succ_count[v], v) for v in unknown_set]
+        heapq.heapify(succ_heap)
 
     for node in grounding_set:
         for pred in G_pred[node]:
@@ -51,25 +55,50 @@ def greedy_deductive_grounding(G, initial_grounding, strategy, backoff):
 
     pbar = tqdm(initial=len(all_nodes) - len(unknown_set), total=len(all_nodes), desc="# known nodes")
     while len(unknown_set) > 0:
-        if len(to_explore) > 0:
-            if strategy == "queue":
-                current = to_explore.popleft()
-            elif strategy == "stack":
-                current = to_explore.pop()
+        if to_explore:
+            current = to_explore.popleft() if strategy == "queue" else to_explore.pop()
         else:
             if backoff == "random":
-                current = random.choice(list(unknown_set))
+                current = random.choice(tuple(unknown_set))
             elif backoff == "max_out_degree":
-                current = max(unknown_set, key=lambda x: remaining_succ_count[x])
+                while True:
+                    _, cand = heapq.heappop(succ_heap)
+                    if cand in unknown_set:
+                        current = cand
+                        break
+            elif backoff == "lookahead":
+                candidates = []
+                while succ_heap and len(candidates) < lookahead_k:
+                    _, cand = heapq.heappop(succ_heap)
+                    if cand in unknown_set:
+                        candidates.append(cand)
+                best = None
+                best_gain = -1
+                for cand in candidates:
+                    gain = sum(
+                        1 for succ in G_succ[cand]
+                        if succ in unknown_set and remaining_pred_count[succ] == 1
+                    )
+                    if gain > best_gain:
+                        best_gain = gain
+                        best = cand
+                current = best if best is not None else candidates[0]
+                # push back the unused candidates
+                for cand in candidates:
+                    if cand != current:
+                        heapq.heappush(succ_heap, (-remaining_succ_count[cand], cand))
             grounding_set.add(current)
-            
+
         unknown_set.remove(current)
+
         for succ in G_succ[current]:
             remaining_pred_count[succ] -= 1
             if (succ in unknown_set) and (remaining_pred_count[succ] == 0):
                 to_explore.append(succ)
         for pred in G_pred[current]:
             remaining_succ_count[pred] -= 1
+            if backoff in ("max_out_degree", "lookahead") and pred in unknown_set:
+                heapq.heappush(succ_heap, (-remaining_succ_count[pred], pred))
 
         pbar.update(1)
 
@@ -96,12 +125,12 @@ if __name__ == "__main__":
     parser.add_argument("--output_path", type=str, default="data/experiments/greedy_deductive_grounding.json", help="Path to save grounding result")
     parser.add_argument("--initial_grounding", choices=["empty", "mandatory"], default="mandatory", help="Initial grounding set")
     parser.add_argument("--strategy", choices=["queue", "stack"], default="queue", help="Strategy for exploring the known frontier")
-    parser.add_argument("--backoff", choices=["random", "max_out_degree"], default="max_out_degree", help="Strategy for picking new grounding word when stuck")
+    parser.add_argument("--backoff", choices=["random", "max_out_degree", "lookahead"], default="max_out_degree", help="Strategy for picking new grounding word when stuck")
+    parser.add_argument("--lookahead_k", type=int, default=30, help="Number of candidates to evaluate in lookahead mode")
     parser.add_argument("--random_seed", type=int, default=42, help="Random seed for reproducibility")
     args = parser.parse_args()
 
     if args.backoff == "random":
-        print(f"Using random seed {args.random_seed}")
         random.seed(args.random_seed)
 
     print(f"Loading graph from {args.input_path}")
@@ -113,7 +142,8 @@ if __name__ == "__main__":
         G,
         initial_grounding=args.initial_grounding,
         strategy=args.strategy,
-        backoff=args.backoff
+        backoff=args.backoff,
+        lookahead_k=args.lookahead_k
     )
 
     print(f"Found grounding set of size {results['grounding_set_size']} out of {results['total_nodes']} total nodes")
